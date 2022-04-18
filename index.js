@@ -18,19 +18,51 @@ function logger(req, res, next) {
 app.use(logger)
 app.use(express.json())
 
-
+const checkPermission = (req, res, next) => {
+    // console.log(re.url)
+    if (req.query.libraries) {
+        console.log(req.query)
+        res.send("Please provide wirte query")
+    } else {
+        next()
+    }
+    // ||!req.query.author
+}
+app.use((req, res, next) => {
+    next()
+})
 
 
 app.get("/books", (req, res) => {
     // res.send("hello")
     res.json(user)
 })
-app.get("/lib", (req, res) => {
+app.get("/lib", checkPermission,(req, res) => {
     let { libraries } = req.query;
 
     // http://localhost:8000/lib?libraries=delhi
-    if (libraries ) {
+    if (libraries) {
         const d = user.find((d) => d.libraries === libraries);
+        console.log({ d });
+        res.json(d || {})
+        
+    }
+
+    else {
+        res.json({
+            request_from: req.url,
+            data: user,
+        })
+    }
+})
+
+app.get("/auth", checkPermission,(req, res) => {
+  
+    let { authors } = req.query;
+
+    // http://localhost:8000/auth?authors=vikalp
+    if (authors) {
+        const d = user.find((d) => d.authors === authors);
         console.log({ d });
         res.json(d || {})
     }
@@ -43,30 +75,12 @@ app.get("/lib", (req, res) => {
     }
 })
 
-app.get("/auth", (req, res) => {
-    let {  authors }=req.query;
-   
-    // http://localhost:8000/auth?authors=vikalp
-    if (authors){
-        const d = user.find((d) => d.authors === authors);
-        console.log({ d });
-        res.json(d ||{})
-    }
-
-    else{
-    res.json({
-        request_from: req.url,
-        data: user,
-    })
-}
-})
-
 
 app.post("/user", [logger, express.json()], (req, res) => {
-   //
+    //
     user.push(req.body)
-  
-    res.json(req.body)  
+
+    res.json(req.body)
 })
 
 app.listen(PORT, () => {
